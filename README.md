@@ -1,4 +1,3 @@
-
 # Install Airflow on AKS
 
 Build and execute a multi-node Airflow on Azure kubernets cluster (AKS).
@@ -14,9 +13,10 @@ Airflow is used to create workflows as directed acyclic graphs (DAGs) of tasks. 
 [Documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html)
 prior knowledge on Airflow as well as Kubernetes is a must. Other items are given below:
 
-* In this article I will not cover how to create Azure AKS cluster. So make sure you have Azure AKS cluster to deploy Airflow.
-* Create Azure storage and fileshare.
-* Create a Namespace.
+- In this article I will not cover how to create Azure AKS cluster. So make sure you have Azure AKS cluster to deploy Airflow.
+- Create `Azure storage account` and fileshare.
+- Create a `Namespace`.
+- Make sure you have `az-cli` installed on your window machine
 
 ### Setup Helm and kubectl
 I am using windows so here are the steps:
@@ -29,11 +29,11 @@ I am using windows so here are the steps:
 ```
 choco install kubernetes-helm
 ``` 
-Verify your version of Helm
+Verify your version of `helm`
 ```
 helm version
 ``` 
-Now you are all set with helm.
+Now you are all set with `helm`.
 
 * **Install kubectl on Windows**: Execute the following command.
 ```
@@ -99,13 +99,13 @@ Information on how to set a static webserver secret key can be found here:
 https://airflow.apache.org/docs/helm-chart/stable/production-guide.html#webserver-secret-key
 ```
 * Check the helm list
-``` 
+```
 C:\Users\Prashant>helm ls -n airflow
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
 airflow airflow         1               2023-07-26 17:39:15.567555 -0400 EDT    deployed        airflow-1.10.0  2.6.2
 ```
 * Default pods installed will be shown below:
-``` 
+```
 C:\Users\Prashant>kubectl get pods -n airflow
 NAME                                 READY   STATUS    RESTARTS   AGE
 airflow-postgresql-0                 1/1     Running   0          10m
@@ -117,7 +117,7 @@ airflow-webserver-59976594dc-sq5sp   1/1     Running   0          10m
 airflow-worker-0                     2/2     Running   0          10m
 ```
 * Check the logs of the service:
-``` 
+```
 C:\Users\Prashant>kubectl logs airflow-scheduler-7689f9f48d-lgl29 -n airflow -c scheduler
 
 
@@ -137,7 +137,7 @@ ___  ___ |  / _  /   _  __/ _  / / /_/ /_ |/ |/ /
 [2023-07-26T21:50:23.310+0000] {scheduler_job_runner.py:1553} INFO - Resetting orphaned tasks for active dag runs
 ```
 * **Access the Airflow Web UI**
-``` 
+```
 kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airflow
 ```
 # Production ready setup:
@@ -146,3 +146,19 @@ To install a Production ready setup we need:
 - Load Balancer (`nginx-ingress`). 
 - Attach Volume(Storage) for DAG's and Logs.    
 - KubernetesExecutor - Uses Kubernetes pods to run the worker tasks
+
+### Setup Database
+Create PostgreSQL Database
+```sql
+postgres=# CREATE ROLE airflow LOGIN PASSWORD 'airflow';
+postgres=# CREATE DATABASE airflow OWNER airflow ENCODING 'UTF8';
+postgres=# GRANT ALL ON DATABASE airflow TO airflow;
+```
+**Things we need moving forward**
+- **Namespace**: airflow (Create it in Azure)
+- **Storage Account Name**: airflowstorage 
+- **Share-Name**: airflow-logs and airflow-Dags 
+- **account-key**: <*your account key*>
+- **AKS Cluster** Airflow-AKS  
+
+Login to your cloud account with AZ-CLI
