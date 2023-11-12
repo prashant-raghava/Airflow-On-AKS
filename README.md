@@ -10,19 +10,15 @@ Airflow is used to create workflows as directed acyclic graphs (DAGs) of tasks. 
 
 ### Prerequisites
 
-[Documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html)
+[Official Airflow Documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html)
 prior knowledge on Airflow as well as Kubernetes is a must. Other items are given below:
-
 - In this article I will not cover how to create Azure AKS cluster. So make sure you have Azure AKS cluster to deploy Airflow.
 - Create `Azure storage account` and fileshare.
 - Create a `Namespace`.
 - Make sure you have `az-cli` installed on your window machine
-
 ### Setup Helm and kubectl
 I am using windows so here are the steps:
-
 * **Install choco**: Run the follwoing command on command prompt:
-
 ```
 @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 ```
@@ -161,8 +157,8 @@ postgres=# GRANT ALL ON DATABASE airflow TO airflow;
 - **account-key**: <*your account key*>
 - **AKS Cluster** Airflow-AKS  
 
-### Let's start:
-
+### Installation Begin
+### Login to Cloud ###
 - Login to your cloud account with AZ-CLI: Execute below commands on window machine `command prompt`. I am using [VS code editor](https://code.visualstudio.com/) to execute these commands:
 ```
 az login --service-principal -u "a4a868b6-e943-3771-4121-1288d28ce522" -p "~187Q~G~24sulh6.9i4r8GYIs-qqrHH723#OoqbUI" --tenant "7654ece1-g80q-40we-9w23-2a7bewwdb345"
@@ -177,7 +173,6 @@ Most of the interaction with kubelogin is around convert-kubeconfig subcommand w
 kubelogin convert-kubeconfig -l azurecli
 ```
 Congratulation now we are ready to take off 🚀
-
 #### Mount a Shared Persistent Volume: 
 This method stores your DAGs and logs in a Kubernetes Persistent Volume Claim (PVC), you must use some external system to ensure this volume has your latest DAGs and logs. 
 let's attach persistant volume and claim that volume: execute below comannd to configure this:
@@ -208,7 +203,6 @@ To deploy an NGINX Ingress Controller using Helm, you can do the following:
 - Run helm repo update
 - Deploy using the chart nginx-stable/nginx-ingress
 Use the following commands to setup nginx ingress: 
-
 ```
 > helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx helm repo update
 > helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
@@ -219,18 +213,15 @@ Make sure the NGINX Ingress controller is running.
 ```
 kubectl get all -n ingress-nginx
 ```
-- Exposing Services using NGINX Ingress Controller
-Now that an ingress controller is running in the cluster, you will need to create services that leverage it using either host, URI mapping, or even both.
-
+- **Exposing Services using NGINX Ingress Controller**: Now that an ingress controller is running in the cluster, you will need to create services that leverage it using either host, URI mapping, or even both.
 Sample of a host-based service mapping through an ingress controller using the type “Ingress”:
 Use `airflow-ingress.yaml` file to configure ingress controller. Execute following command to expose service:
 ```
 > kubectl apply -f airflow-ingress.yaml -n airflow
 ```
-**Note:** *Make sure to use same namespace where we are creating airflow. Ingress controller is running in ingress-nginx namespace.*
+**Note:** *Make sure to use same namespace where we are installing airflow. Ingress controller is running in **ingress-nginx** namespace.*
 ## Final Step
 Now We will use `values.yaml` file to install airflow. In this file we will define everything we need to configure Airflow. You can get this file in respository.
-
 Execute the following command to install Airflow on AKS:
 ```
 helm upgrade --install airflow apache-airflow/airflow --namespace airflow -f values.yaml --debug --timeout 10m0s
