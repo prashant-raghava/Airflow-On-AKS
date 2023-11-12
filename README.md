@@ -161,4 +161,28 @@ postgres=# GRANT ALL ON DATABASE airflow TO airflow;
 - **account-key**: <*your account key*>
 - **AKS Cluster** Airflow-AKS  
 
-Login to your cloud account with AZ-CLI
+### Let's start:
+
+- Login to your cloud account with AZ-CLI: Execute below commands on window machine `command prompt`. I am using [VS code editor](https://code.visualstudio.com/) to execute these commands:
+```
+az login --service-principal -u "a4a868b6-e943-3771-4121-1288d28ce522" -p "~187Q~G~24sulh6.9i4r8GYIs-qqrHH723#OoqbUI" --tenant "7654ece1-g80q-40we-9w23-2a7bewwdb345"
+az aks get-credentials --resource-group my-resource-group-aks --name Airflow-AKS
+```
+If you have multiple context, execute below command to set the right context:
+```
+kubectl config use-context Airflow-AKS
+```
+Most of the interaction with kubelogin is around convert-kubeconfig subcommand which uses the input kubeconfig specified in --kubeconfig or KUBECONFIG environment variable to convert to the final kubeconfig in exec format based on specified login mode.
+```
+kubelogin convert-kubeconfig -l azurecli
+```
+Congratulation now we are ready to take off 🚀
+We will use `values.yaml' file to install airflow. In this file we will define everything we need to configure Airflow. You can get this file in respository. Execute the following command to install Airflow on AKS:
+```bash
+helm upgrade --install airflow apache-airflow/airflow --namespace airflow -f values.yaml --debug --timeout 10m0s
+```
+
+
+
+
+
