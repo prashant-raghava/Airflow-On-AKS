@@ -177,12 +177,63 @@ Most of the interaction with kubelogin is around convert-kubeconfig subcommand w
 kubelogin convert-kubeconfig -l azurecli
 ```
 Congratulation now we are ready to take off 🚀
-We will use `values.yaml' file to install airflow. In this file we will define everything we need to configure Airflow. You can get this file in respository. Execute the following command to install Airflow on AKS:
-```bash
+
+#### Mount a Shared Persistent Volume: 
+This method stores your DAGs and logs in a Kubernetes Persistent Volume Claim (PVC), you must use some external system to ensure this volume has your latest DAGs and logs. 
+let's attach persistant volume and claim that volume: execute below comannd to configure this:
+```
+kubectl apply -f airflow-dags-storage-pv.yaml -n airflow
+kubectl apply -f airflow-dags-storage-pvc.yaml -n airflow
+kubectl apply -f airflow-logs-storage-pv.yaml -n airflow
+kubectl apply -f airflow-logs-storage-pvc.yaml -n airflow
+```
+Check PVC:
+```
+PS C:\Users\Prashant> kubectl get pvc -n airflow
+NAME           STATUS   VOLUME         CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+airflow-dags   Bound    airflow-dags   10Gi       RWX            default        1h
+airflow-logs   Bound    airflow-logs   10Gi       RWX            default        1h
+```
+Check PV:
+```
+PS C:\Users\Prashant> kubectl get pv -n airflow 
+NAME            CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                   STORAGECLASS   REASON   AGE
+airflow-dags    10Gi       RWX            Retain           Bound    airflow/airflow-dags    default                 4d1h
+airflow-logs    10Gi       RWX            Retain           Bound    airflow/airflow-logs    default                 4d1h
+```
+#### Deploying an ingress controller
+The NGINX Ingress Controller plays an important role in Kubernetes by managing incoming traffic to the cluster. It acts as a reverse proxy and load balancer, routing incoming requests to the correct service based on the hostname and path of the request. This allows for easy management of the traffic routing rules, and it does not require changes to the application code.
+To deploy an NGINX Ingress Controller using Helm, you can do the following: 
+- Add the nginx-stable repository to helm
+- Run helm repo update
+- Deploy using the chart nginx-stable/nginx-ingress
+Use the following commands to setup nginx ingress: 
+
+```
+> helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx helm repo update
+> helm install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace
+> helm repo update
+```
+- Validate that NGINX is Running
+Make sure the NGINX Ingress controller is running.
+```
+kubectl get all -n ingress-nginx
+```
+- Exposing Services using NGINX Ingress Controller
+Now that an ingress controller is running in the cluster, you will need to create services that leverage it using either host, URI mapping, or even both.
+
+Sample of a host-based service mapping through an ingress controller using the type “Ingress”:
+Use `airflow-ingress.yaml` file to configure ingress controller. Execute following command to expose service:
+```
+> kubectl apply -f airflow-ingress.yaml -n airflow
+```
+**Note:** *Make sure to use same namespace where we are creating airflow. Ingress controller is running in ingress-nginx namespace.*
+## Final Step
+Now We will use `values.yaml` file to install airflow. In this file we will define everything we need to configure Airflow. You can get this file in respository.
+
+Execute the following command to install Airflow on AKS:
+```
 helm upgrade --install airflow apache-airflow/airflow --namespace airflow -f values.yaml --debug --timeout 10m0s
 ```
-
-
-
 
 
