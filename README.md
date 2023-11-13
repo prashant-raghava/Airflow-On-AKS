@@ -226,5 +226,17 @@ Execute the following command to install Airflow on AKS:
 ```
 helm upgrade --install airflow apache-airflow/airflow --namespace airflow -f values.yaml --debug --timeout 10m0s
 ```
+Once everything is fine then you will see below pods up and running in cluster:
+```
+PS C:\Users\Prashant> kubectl get pods -n airflow
+NAME                                 READY   STATUS    RESTARTS   AGE  
+airflow-scheduler-15f944d4d-xpsnn    2/2     Running   0          4d19h
+airflow-statsd-9df9f78557-lwbd7      1/1     Running   0          4d21h
+airflow-triggerer-0                  2/2     Running   0          4d19h
+airflow-webserver-857df2d56b-rjsvw   1/1     Running   0          4d19h
+```
+Congratulation!! you have successfully provisioned production ready Airflow on AKS.
+You can access Airflow UI through the URL defined in ingres file.
+
 
 
